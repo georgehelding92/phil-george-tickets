@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Phil & George Tickets</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0f; font-family: 'DM Sans', sans-serif; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+.ticket-card { animation: fadeIn 0.2s ease forwards; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+const { useState, useEffect, useCallback, Fragment } = React;
+
+const SUPABASE_URL = "https://eqjakeissuxsojgvvwxv.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxamFrZWlzc3V4c29qZ3Z2d3h2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwODY2MjEsImV4cCI6MjA5MzY2MjYyMX0.DmU9kCvR2BMk3oP9wZ2fmqGd0JuVaOP0ZY3SjjnHpZg";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const CUBS_2026 = [
+  { id:"c1",  date:"2026-03-26", day:"Thu", time:"1:20 PM", opponent:"Nationals", assignee:"Phil", sheetNotes:"" },
+  { id:"c2",  date:"2026-03-28", day:"Sat", time:"1:20 PM", opponent:"Nationals", assignee:"Phil", sheetNotes:"" },
+  { id:"c3",  date:"2026-03-29", day:"Sun", time:"1:20 PM", opponent:"Nationals", assignee:"David", sheetNotes:"" },
+  { id:"c4",  date:"2026-03-30", day:"Mon", time:"6:40 PM", opponent:"Angels",    assignee:"Phil", sheetNotes:"" },
+  { id:"c5",  date:"2026-03-31", day:"Tue", time:"6:40 PM", opponent:"Angels",    assignee:"Phil", sheetNotes:"" },
+  { id:"c6",  date:"2026-04-01", day:"Wed", time:"1:20 PM", opponent:"Angels",    assignee:"David", sheetNotes:"" },
+  { id:"c7",  date:"2026-04-10", day:"Fri", time:"1:20 PM", opponent:"Pirates",   assignee:"Phil", sheetNotes:"" },
+  { id:"c8",  date:"2026-04-11", day:"Sat", time:"1:20 PM", opponent:"Pirates",   assignee:"Phil", sheetNotes:"" },
+  { id:"c9",  date:"2026-04-12", day:"Sun", time:"1:20 PM", opponent:"Pirates",   assignee:"David", sheetNotes:"" },
+  { id:"c10", date:"2026-04-17", day:"Fri", time:"1:20 PM", opponent:"Mets",      assignee:"Phil", sheetNotes:"" },
+  { id:"c11", date:"2026-04-18", day:"Sat", time:"1:20 PM", opponent:"Mets",      assignee:"Phil", sheetNotes:"Attend with George", philStatus:"in", georgeStatus:"in" },
+  { id:"c12", date:"2026-04-19", day:"Sun", time:"1:20 PM", opponent:"Mets",      assignee:"David", sheetNotes:"" },
+  { id:"c13", date:"2026-04-20", day:"Mon", time:"6:40 PM", opponent:"Phillies",  assignee:"Phil", sheetNotes:"Sold" },
+  { id:"c14", date:"2026-04-21", day:"Tue", time:"6:40 PM", opponent:"Phillies",  assignee:"Phil", sheetNotes:"Give to George", georgeStatus:"in" },
+  { id:"c15", date:"2026-04-22", day:"Wed", time:"6:40 PM", opponent:"Phillies",  assignee:"Phil", sheetNotes:"Sold" },
+  { id:"c16", date:"2026-04-23", day:"Thu", time:"1:20 PM", opponent:"Phillies",  assignee:"David", sheetNotes:"" },
+  { id:"c17", date:"2026-05-01", day:"Fri", time:"1:20 PM", opponent:"D-Backs",   assignee:"Phil", sheetNotes:"Sold" },
+  { id:"c18", date:"2026-05-02", day:"Sat", time:"1:20 PM", opponent:"D-Backs",   assignee:"Phil", sheetNotes:"Sold", philStatus:"in", georgeStatus:"in" },
+  { id:"c19", date:"2026-05-03", day:"Sun", time:"1:20 PM", opponent:"D-Backs",   assignee:"David", sheetNotes:"" },
+  { id:"c20", date:"2026-05-04", day:"Mon", time:"6:40 PM", opponent:"Reds",      assignee:"Phil", sheetNotes:"Give to George", georgeStatus:"in" },
+  { id:"c21", date:"2026-05-05", day:"Tue", time:"6:40 PM", opponent:"Reds",      assignee:"Phil", sheetNotes:"Exchange" },
+  { id:"c22", date:"2026-05-06", day:"Wed", time:"6:40 PM", opponent:"Reds",      assignee:"Phil", sheetNotes:"Sold", georgeStatus:"in" },
+  { id:"c23", date:"2026-05-07", day:"Thu", time:"1:20 PM", opponent:"Reds",      assignee:"David", sheetNotes:"" },
+  { id:"c24", date:"2026-05-18", day:"Mon", time:"6:40 PM", opponent:"Brewers",   assignee:"Phil", sheetNotes:"George in SF", philStatus:"in", georgeStatus:"out" },
+  { id:"c25", date:"2026-05-19", day:"Tue", time:"6:40 PM", opponent:"Brewers",   assignee:"Phil", sheetNotes:"Sold/Exchanged" },
+  { id:"c26", date:"2026-05-20", day:"Wed", time:"6:40 PM", opponent:"Brewers",   assignee:"David", sheetNotes:"" },
+  { id:"c27", date:"2026-05-22", day:"Fri", time:"1:20 PM", opponent:"Astros",    assignee:"Phil", sheetNotes:"Attend with George", philStatus:"in", georgeStatus:"in" },
+  { id:"c28", date:"2026-05-23", day:"Sat", time:"1:20 PM", opponent:"Astros",    assignee:"Phil", sheetNotes:"", philStatus:"in" },
+  { id:"c29", date:"2026-05-24", day:"Sun", time:"1:20 PM", opponent:"Astros",    assignee:"David", sheetNotes:"" },
+  { id:"c30", date:"2026-06-02", day:"Tue", time:"7:05 PM", opponent:"Athletics", assignee:"Phil", sheetNotes:"", philStatus:"out" },
+  { id:"c31", date:"2026-06-03", day:"Wed", time:"7:05 PM", opponent:"Athletics", assignee:"Phil", sheetNotes:"", philStatus:"in" },
+  { id:"c32", date:"2026-06-04", day:"Thu", time:"7:05 PM", opponent:"Athletics", assignee:"David", sheetNotes:"" },
+  { id:"c33", date:"2026-06-05", day:"Fri", time:"1:20 PM", opponent:"Giants",    assignee:"Phil", sheetNotes:"", philStatus:"in" },
+  { id:"c34", date:"2026-06-06", day:"Sat", time:"1:20 PM", opponent:"Giants",    assignee:"Phil", sheetNotes:"", philStatus:"in" },
+  { id:"c35", date:"2026-06-07", day:"Sun", time:"7:20 PM", opponent:"Giants",    assignee:"David", sheetNotes:"" },
+  { id:"c36", date:"2026-06-15", day:"Mon", time:"7:05 PM", opponent:"Rockies",   assignee:"Phil", sheetNotes:"", philStatus:"in" },
+  { id:"c37", date:"2026-06-16", day:"Tue", time:"7:05 PM", opponent:"Rockies",   assignee:"Phil", sheetNotes:"", philStatus:"out" },
+  { id:"c38", date:"2026-06-17", day:"Wed", time:"7:05 PM", opponent:"Rockies",   assignee:"David", sheetNotes:"" },
+  { id:"c39", date:"2026-06-19", day:"Fri", time:"1:20 PM", opponent:"Blue Jays", assignee:"Phil", sheetNotes:"", philStatus:"in" },
+  { id:"c40", date:"2026-06-20", day:"Sat", time:"1:20 PM", opponent:"Blue Jays", assignee:"Phil", sheetNotes:"", philStatus:"in" },
+  { id:"c41", date:"2026-06-21", day:"Sun", time:"1:20 PM", opponent:"Blue Jays", assignee:"David", sheetNotes:"" },
+  { id:"c42", date:"2026-06-29", day:"Mon", time:"7:05 PM", opponent:"Padres",    assignee:"Phil", sheetNotes:"", philStatus:"in" },
+  { id:"c43", date:"2026-06-30", day:"Tue", time:"7:05 PM", opponent:"Padres",    assignee:"Phil", sheetNotes:"", philStatus:"out" },
+  { id:"c44", date:"2026-07-01", day:"Wed", time:"1:20 PM", opponent:"Padres",    assignee:"Phil", sheetNotes:"" },
+  { id:"c45", date:"2026-07-03", day:"Fri", time:"3:05 PM", opponent:"Cardinals", assignee:"Phil", sheetNotes:"" },
+  { id:"c46", date:"2026-07-04", day:"Sat", time:"7:08 PM", opponent:"Cardinals", assignee:"David", sheetNotes:"" },
+  { id:"c47", date:"2026-07-05", day:"Sun", time:"1:30 PM", opponent:"Cardinals", assignee:"Phil", sheetNotes:"" },
+  { id:"c48", date:"2026-07-17", day:"Fri", time:"7:05 PM", opponent:"Twins",     assignee:"Phil", sheetNotes:"" },
+  { id:"c49", date:"2026-07-18", day:"Sat", time:"1:20 PM", opponent:"Twins",     assignee:"Phil", sheetNotes:"" },
+  { id:"c50", date:"2026-07-19", day:"Sun", time:"1:20 PM", opponent:"Twins",     assignee:"David", sheetNotes:"" },
+  { id:"c51", date:"2026-07-20", day:"Mon", time:"7:05 PM", opponent:"Tigers",    assignee:"Phil", sheetNotes:"" },
+  { id:"c52", date:"2026-07-21", day:"Tue", time:"7:05 PM", opponent:"Tigers",    assignee:"Phil", sheetNotes:"" },
+  { id:"c53", date:"2026-07-22", day:"Wed", time:"7:05 PM", opponent:"Tigers",    assignee:"David", sheetNotes:"" },
+  { id:"c54", date:"2026-07-31", day:"Fri", time:"1:20 PM", opponent:"Yankees",   assignee:"Phil", sheetNotes:"" },
+  { id:"c55", date:"2026-08-01", day:"Sat", time:"6:15 PM", opponent:"Yankees",   assignee:"Phil", sheetNotes:"" },
+  { id:"c56", date:"2026-08-02", day:"Sun", time:"1:20 PM", opponent:"Yankees",   assignee:"David", sheetNotes:"" },
+  { id:"c57", date:"2026-08-03", day:"Mon", time:"7:05 PM", opponent:"Dodgers",   assignee:"Phil", sheetNotes:"" },
+  { id:"c58", date:"2026-08-04", day:"Tue", time:"7:05 PM", opponent:"Dodgers",   assignee:"Phil", sheetNotes:"" },
+  { id:"c59", date:"2026-08-05", day:"Wed", time:"1:20 PM", opponent:"Dodgers",   assignee:"David", sheetNotes:"" },
+  { id:"c60", date:"2026-08-14", day:"Fri", time:"1:20 PM", opponent:"Cardinals", assignee:"Phil", sheetNotes:"" },
+  { id:"c61", date:"2026-08-15", day:"Sat", time:"1:20 PM", opponent:"Cardinals", assignee:"Phil", sheetNotes:"" },
+  { id:"c62", date:"2026-08-16", day:"Sun", time:"2:10 PM", opponent:"Cardinals", assignee:"David", sheetNotes:"" },
+  { id:"c63", date:"2026-08-17", day:"Mon", time:"7:05 PM", opponent:"White Sox", assignee:"Phil", sheetNotes:"" },
+  { id:"c64", date:"2026-08-18", day:"Tue", time:"7:05 PM", opponent:"White Sox", assignee:"Phil", sheetNotes:"" },
+  { id:"c65", date:"2026-08-19", day:"Wed", time:"1:20 PM", opponent:"White Sox", assignee:"David", sheetNotes:"" },
+  { id:"c66", date:"2026-08-28", day:"Fri", time:"1:20 PM", opponent:"Reds",      assignee:"Phil", sheetNotes:"" },
+  { id:"c67", date:"2026-08-29", day:"Sat", time:"1:20 PM", opponent:"Reds",      assignee:"Phil", sheetNotes:"" },
+  { id:"c68", date:"2026-08-30", day:"Sun", time:"2:10 PM", opponent:"Reds",      assignee:"David", sheetNotes:"" },
+  { id:"c69", date:"2026-08-31", day:"Mon", time:"6:40 PM", opponent:"Brewers",   assignee:"Phil", sheetNotes:"" },
+  { id:"c70", date:"2026-09-01", day:"Tue", time:"6:40 PM", opponent:"Brewers",   assignee:"Phil", sheetNotes:"" },
+  { id:"c71", date:"2026-09-02", day:"Wed", time:"6:40 PM", opponent:"Brewers",   assignee:"David", sheetNotes:"" },
+  { id:"c72", date:"2026-09-03", day:"Thu", time:"6:40 PM", opponent:"Brewers",   assignee:"David", sheetNotes:"" },
+  { id:"c73", date:"2026-09-11", day:"Fri", time:"1:20 PM", opponent:"Pirates",   assignee:"Phil", sheetNotes:"" },
+  { id:"c74", date:"2026-09-12", day:"Sat", time:"1:20 PM", opponent:"Pirates",   assignee:"Phil", sheetNotes:"" },
+  { id:"c75", date:"2026-09-13", day:"Sun", time:"1:20 PM", opponent:"Pirates",   assignee:"David", sheetNotes:"" },
+  { id:"c76", date:"2026-09-14", day:"Mon", time:"6:40 PM", opponent:"Braves",    assignee:"Phil", sheetNotes:"" },
+  { id:"c77", date:"2026-09-15", day:"Tue", time:"6:40 PM", opponent:"Braves",    assignee:"Phil", sheetNotes:"" },
+  { id:"c78", date:"2026-09-16", day:"Wed", time:"6:40 PM", opponent:"Braves",    assignee:"Phil", sheetNotes:"" },
+  { id:"c79", date:"2026-09-22", day:"Tue", time:"6:40 PM", opponent:"Marlins",   assignee:"Phil", sheetNotes:"" },
+  { id:"c80", date:"2026-09-23", day:"Wed", time:"6:40 PM", opponent:"Marlins",   assignee:"Phil", sheetNotes:"" },
+  { id:"c81", date:"2026-09-24", day:"Thu", time:"1:20 PM", opponent:"Marlins",   assignee:"David", sheetNotes:"" },
+];
+
+function fromDb(row) {
+  return { ...row, philStatus: row.phil_status, georgeStatus: row.george_status };
+}
+
+function getEventStatus(ev) {
+  const p = ev.philStatus ?? ev.phil_status;
+  const g = ev.georgeStatus ?? ev.george_status;
+  if (p==="in" && g==="in")   return "together";
+  if (p==="in" && g==="out")  return "phil-needs-plus";
+  if (p==="out" && g==="in")  return "george-needs-plus";
+  if (p==="out" && g==="out") return "sell";
+  return "undecided";
+}
+
+const STATUS_CONFIG = {
+  together:            { label:"Going Together 🎉", color:"#22c55e", bg:"#052e16" },
+  "phil-needs-plus":   { label:"Phil Needs +1",     color:"#f59e0b", bg:"#2d1a00" },
+  "george-needs-plus": { label:"George Needs +1",   color:"#f59e0b", bg:"#2d1a00" },
+  sell:                { label:"Sell / Exchange",   color:"#ef4444", bg:"#2d0a0a" },
+  undecided:           { label:"Needs Decision",    color:"#888",    bg:"#1a1a2e" },
+};
+
+const TEAM_CONFIG = {
+  cubs:  { emoji:"⚾", accent:"#CC3433", secondAccent:"#0E3386", label:"Cubs",  venue:"Wrigley Field",  section:"Sec 111, Row 11, Seats 7 & 8" },
+  bears: { emoji:"🏈", accent:"#F26522", secondAccent:"#0B1C3F", label:"Bears", venue:"Soldier Field",  section:"Sec 108, Row 12" },
+  other: { emoji:"🎵", accent:"#a78bfa", secondAccent:"#4c1d95", label:"Other", venue:"",               section:"" },
+};
+
+function daysUntil(ds) {
+  const todayStr = new Date().toLocaleDateString("en-CA");
+  if (ds === todayStr) return "TODAY";
+  const today = new Date(todayStr);
+  const d = new Date(ds);
+  const diff = Math.round((d - today) / 864e5);
+  if (diff < 0) return "Past";
+  if (diff === 1) return "Tomorrow";
+  return `${diff}d`;
+}
+
+function formatDate(ds) {
+  return new Date(ds+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+}
+function formatDateLong(ds) {
+  return new Date(ds+"T12:00:00").toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+}
+function formatMonth(ds) {
+  return new Date(ds+"T12:00:00").toLocaleDateString("en-US",{month:"long",year:"numeric"});
+}
+
+function groupByMonth(events) {
+  const groups = {};
+  events.forEach(ev => {
+    const m = formatMonth(ev.date);
+    if (!groups[m]) groups[m] = [];
+    groups[m].push(ev);
+  });
+  return groups;
+}
+
+function StatusPill({status}) {
+  const c = STATUS_CONFIG[status];
+  return <span style={{fontSize:"11px",fontWeight:700,letterSpacing:"0.06em",textTransform:"uppercase",color:c.color,background:c.bg,border:`1px solid ${c.color}44`,borderRadius:"4px",padding:"3px 10px",whiteSpace:"nowrap"}}>{c.label}</span>;
+}
+
+function AvailButton({value, active, onClick, label}) {
+  const clr = {in:"#22c55e", out:"#ef4444", maybe:"#f59e0b"}[value];
+  return (
+    <button onClick={onClick} style={{flex:1,padding:"8px 4px",borderRadius:"6px",border:active?`2px solid ${clr}`:"2px solid #252535",background:active?`${clr}18`:"#12121e",color:active?clr:"#666",fontFamily:"'DM Sans',sans-serif",fontWeight:active?700:500,fontSize:"12px",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:"2px",minWidth:0,transition:"all 0.12s"}}>
+      <span style={{fontSize:"14px"}}>{value==="in"?"✓":value==="out"?"✗":"~"}</span>
+      <span>{label}</span>
+    </button>
+  );
+}
+
+function EventCard({event, onUpdate, onClick}) {
+  const status = getEventStatus(event);
+  const team = TEAM_CONFIG[event.team];
+  const days = daysUntil(event.date);
+  const isPast = days === "Past";
+  const isToday = days === "TODAY";
+  const isTomorrow = days === "Tomorrow";
+  const countdownColor = isToday ? "#ff6b6b" : isTomorrow ? "#f59e0b" : "#555";
+
+  const handleToggle = (e, field, value) => {
+    e.stopPropagation();
+    const current = event[field] ?? event[field==="philStatus"?"phil_status":"george_status"];
+    onUpdate(event.id, field, current === value ? null : value);
+  };
+
+  return (
+    <div
+      className="ticket-card"
+      onClick={() => onClick(event)}
+      style={{
+        background: isPast ? "#0d0d14" : `linear-gradient(135deg,#14142a 0%,#0f0f1e 100%)`,
+        border: isToday ? `1px solid ${team.accent}88` : "1px solid #1e1e32",
+        borderLeft: `4px solid ${isPast?"#2a2a3a":team.accent}`,
+        borderRadius: "12px",
+        marginBottom: "8px",
+        cursor: "pointer",
+        opacity: isPast ? 0.4 : 1,
+        boxShadow: isToday ? `0 0 20px ${team.accent}22` : "none",
+        overflow: "hidden",
+      }}
+    >
+      {/* Game Day banner — solid, no animation */}
+      {isToday && (
+        <div style={{background:`linear-gradient(90deg,${team.accent},${team.secondAccent})`,padding:"4px 16px",textAlign:"center"}}>
+          <span style={{fontSize:"11px",fontWeight:700,letterSpacing:"0.2em",color:"#fff",fontFamily:"'Bebas Neue',cursive"}}>🎟 GAME DAY 🎟</span>
+        </div>
+      )}
+
+      <div style={{padding:"12px 14px"}}>
+        {/* Top row: title+venue left, date+countdown right */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"10px",gap:"8px"}}>
+          <div style={{display:"flex",alignItems:"flex-start",gap:"8px",flex:1,minWidth:0}}>
+            <span style={{fontSize:"20px",flexShrink:0,marginTop:"1px"}}>{team.emoji}</span>
+            <div style={{minWidth:0}}>
+              <div style={{fontSize:"17px",fontWeight:700,color:"#f0f0f8",fontFamily:"'Bebas Neue',cursive",letterSpacing:"0.04em",lineHeight:1.1}}>{event.title}</div>
+              <div style={{fontSize:"11px",color:"#555",fontFamily:"'DM Sans',sans-serif",lineHeight:1.3,marginTop:"2px"}}>{event.venue || team.venue}</div>
+            </div>
+          </div>
+          <div style={{textAlign:"right",flexShrink:0}}>
+            <div style={{fontSize:"13px",fontWeight:600,color:"#c0c0d8",fontFamily:"'DM Sans',sans-serif",lineHeight:1.2}}>{formatDate(event.date)}</div>
+            <div style={{fontSize:"12px",color:"#a0a0b8",fontFamily:"'DM Sans',sans-serif"}}>{event.time}</div>
+            {!isPast && <div style={{fontSize:"10px",color:countdownColor,fontFamily:"'Courier Prime',monospace",fontWeight:700,marginTop:"2px",letterSpacing:"0.05em"}}>{days}</div>}
+          </div>
+        </div>
+
+        {/* Status */}
+        <div style={{marginBottom:"10px"}}>
+          <StatusPill status={status}/>
+        </div>
+
+        {/* Availability — clearer Phil/George separation */}
+        <div style={{display:"flex",gap:"0",alignItems:"stretch",background:"#0d0d18",borderRadius:"8px",overflow:"hidden",border:"1px solid #252535"}} onClick={e=>e.stopPropagation()}>
+          {[["PHIL","philStatus","phil_status"],["GEORGE","georgeStatus","george_status"]].map(([label,field,dbField],i)=>(
+            <Fragment key={field}>
+              {i>0&&<div style={{width:"1px",background:"#252535",flexShrink:0}}/>}
+              <div style={{flex:1,padding:"8px 6px 8px"}}>
+                <div style={{fontSize:"10px",color:"#666",marginBottom:"4px",fontFamily:"'Courier Prime',monospace",fontWeight:700,letterSpacing:"0.1em",textAlign:"center"}}>{label}</div>
+                <div style={{display:"flex",gap:"3px"}}>
+                  {["in","maybe","out"].map(v=>(
+                    <AvailButton key={v} value={v}
+                      active={event[field]===v||event[dbField]===v}
+                      onClick={(e)=>handleToggle(e,field,v)}
+                      label={v==="in"?"In":v==="maybe"?"?":"Out"}
+                    />
+                  ))}
+                </div>
+              </div>
+            </Fragment>
+          ))}
+        </div>
+
+        {event.notes && (
+          <div style={{marginTop:"8px",fontSize:"11px",color:"#555",fontFamily:"'Courier Prime',monospace",fontStyle:"italic"}}>📝 {event.notes}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MonthHeader({month}) {
+  return (
+    <div style={{display:"flex",alignItems:"center",gap:"10px",margin:"16px 0 8px",padding:"0 2px"}}>
+      <div style={{flex:1,height:"1px",background:"#1e1e32"}}/>
+      <span style={{fontSize:"11px",fontWeight:700,color:"#555",fontFamily:"'Courier Prime',monospace",letterSpacing:"0.12em",textTransform:"uppercase",whiteSpace:"nowrap"}}>{month}</span>
+      <div style={{flex:1,height:"1px",background:"#1e1e32"}}/>
+    </div>
+  );
+}
+
+function SeasonOverview({onClose}) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const [showPastMonths, setShowPastMonths] = React.useState(false);
+  const scrollRef = React.useRef(null);
+  const currentMonthRef = React.useRef(null);
+
+  const philCount = CUBS_2026.filter(g=>g.assignee==="Phil").length;
+  const davidCount = CUBS_2026.filter(g=>g.assignee==="David").length;
+
+  const currentMonthStr = formatMonth(new Date().toLocaleDateString("en-CA"));
+
+  const byMonth = {};
+  CUBS_2026.forEach(g=>{
+    const m = formatMonth(g.date);
+    if(!byMonth[m]) byMonth[m]=[];
+    byMonth[m].push(g);
+  });
+
+  const pastMonths = Object.entries(byMonth).filter(([m])=> new Date(m+"1") < new Date(currentMonthStr+"1") && m !== currentMonthStr);
+  const currentAndFutureMonths = Object.entries(byMonth).filter(([m])=> {
+    const mDate = new Date(m.replace(" ","1 "));
+    const cDate = new Date(currentMonthStr.replace(" ","1 "));
+    return mDate >= cDate;
+  });
+  const pastGamesCount = CUBS_2026.filter(g=>new Date(g.date+"T12:00:00")<today).length;
+
+  const todayStr = new Date().toLocaleDateString("en-CA");
+  const firstUpcomingDate = CUBS_2026.find(g => g.date >= todayStr)?.date;
+
+  // Scroll to first upcoming game on open
+  React.useEffect(()=>{
+    if(scrollRef.current) {
+      setTimeout(()=>{
+        const target = scrollRef.current.querySelector(`[data-gameid="${firstUpcomingDate}"]`);
+        if(target) target.scrollIntoView({behavior:"smooth", block:"center"});
+        else if(currentMonthRef.current) currentMonthRef.current.scrollIntoView({behavior:"smooth", block:"start"});
+      }, 150);
+    }
+  },[]);
+
+  const renderGame = (g) => {
+    const isPast = new Date(g.date+"T12:00:00")<today;
+    const isPhil = g.assignee==="Phil";
+    const isFirstUpcoming = g.date === firstUpcomingDate;
+    const accentColor = isPast?"#2a2a3a":isPhil?"#CC3433":"#0E3386";
+    return (
+      <div key={g.id} data-gameid={g.date} style={{display:"flex",alignItems:"center",gap:"10px",padding:"7px 10px",borderRadius:"6px",marginBottom:"3px",borderLeft:`3px solid ${accentColor}`,background:isFirstUpcoming?"#1a1a2e":isPast?"#111118":"#13131f",outline:isFirstUpcoming?`1px solid #CC343344`:"none"}}>
+        <div style={{width:"44px",flexShrink:0}}>
+          <div style={{fontSize:"12px",fontWeight:600,color:isPast?"#888":"#ccc",fontFamily:"'DM Sans',sans-serif"}}>{new Date(g.date+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"})}</div>
+          <div style={{fontSize:"10px",color:isPast?"#555":"#666",fontFamily:"'Courier Prime',monospace"}}>{g.day}</div>
+        </div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:"13px",fontWeight:600,color:isPast?"#888":"#ddd",fontFamily:"'DM Sans',sans-serif",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>vs {g.opponent}</div>
+          <div style={{fontSize:"11px",color:isPast?"#555":"#666",fontFamily:"'Courier Prime',monospace"}}>{g.time}</div>
+        </div>
+        <div style={{flexShrink:0,fontSize:"10px",fontWeight:700,color:isPast?"#666":isPhil?"#CC3433":"#4472c4",background:isPast?"#1a1a2e":isPhil?"#CC343318":"#0E338618",border:`1px solid ${isPast?"#2a2a3a":isPhil?"#CC343444":"#0E338644"}`,borderRadius:"4px",padding:"2px 8px",fontFamily:"'Courier Prime',monospace"}}>{g.assignee}</div>
+        {g.sheetNotes&&<div style={{fontSize:"9px",color:isPast?"#555":"#444",fontFamily:"'Courier Prime',monospace",flexShrink:0,maxWidth:"64px",textAlign:"right",lineHeight:1.3,fontStyle:"italic"}}>{g.sheetNotes}</div>}
+      </div>
+    );
+  };
+
+  const renderMonthHeader = (month, games) => (
+    <div style={{position:"sticky",top:0,padding:"10px 4px 6px",background:"#0a0a0f",fontSize:"10px",fontWeight:700,color:"#555",fontFamily:"'Courier Prime',monospace",letterSpacing:"0.1em",textTransform:"uppercase",zIndex:5,display:"flex",justifyContent:"space-between",borderBottom:"1px solid #1a1a2e",marginBottom:"6px"}}>
+      <span style={{color:"#888"}}>{month}</span>
+      <span>{games.length} games · <span style={{color:"#CC3433"}}>{games.filter(g=>g.assignee==="Phil").length}P</span> / <span style={{color:"#4472c4"}}>{games.filter(g=>g.assignee==="David").length}D</span></span>
+    </div>
+  );
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"#000e",zIndex:200,display:"flex",flexDirection:"column",alignItems:"center"}}>
+      <div style={{background:"#0a0a0f",flex:1,display:"flex",flexDirection:"column",width:"100%",maxWidth:"480px",overflow:"hidden"}}>
+        <div style={{padding:"20px 20px 14px",borderBottom:"1px solid #1a1a2e",flexShrink:0}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"14px"}}>
+            <div>
+              <h2 style={{margin:0,fontFamily:"'Bebas Neue',cursive",fontSize:"26px",color:"#f0f0f8",letterSpacing:"0.05em"}}>⚾ 2026 Season Overview</h2>
+              <p style={{margin:"3px 0 0",fontSize:"11px",color:"#555",fontFamily:"'Courier Prime',monospace"}}>All 81 verified Cubs home games · Read only</p>
+            </div>
+            <button onClick={onClose} style={{background:"none",border:"none",color:"#666",fontSize:"28px",cursor:"pointer",padding:0,lineHeight:1}}>×</button>
+          </div>
+          <div style={{display:"flex",gap:"8px"}}>
+            {[{label:"Phil",count:philCount,color:"#CC3433"},{label:"David",count:davidCount,color:"#0E3386"},{label:"Total",count:CUBS_2026.length,color:"#444"}].map(s=>(
+              <div key={s.label} style={{flex:1,background:"#13131f",borderRadius:"8px",padding:"10px 12px",borderTop:`3px solid ${s.color}`}}>
+                <div style={{fontSize:"26px",fontWeight:700,color:"#f0f0f8",fontFamily:"'Bebas Neue',cursive",lineHeight:1}}>{s.count}</div>
+                <div style={{fontSize:"10px",color:"#666",fontFamily:"'Courier Prime',monospace",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",marginTop:"3px"}}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div ref={scrollRef} style={{overflowY:"auto",flex:1,padding:"0 16px 40px"}}>
+
+          {/* Past months — collapsed by default */}
+          {pastMonths.length > 0 && (
+            <div style={{marginTop:"8px"}}>
+              <button onClick={()=>setShowPastMonths(p=>!p)} style={{width:"100%",padding:"10px",background:"none",border:"none",color:"#444",fontFamily:"'Courier Prime',monospace",fontSize:"10px",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:"8px"}}>
+                <span style={{flex:1,height:"1px",background:"#1e1e32"}}/>
+                <span>{showPastMonths?"▲":"▼"} {pastGamesCount} past games</span>
+                <span style={{flex:1,height:"1px",background:"#1e1e32"}}/>
+              </button>
+              {showPastMonths && pastMonths.map(([month,games])=>(
+                <div key={month}>
+                  {renderMonthHeader(month, games)}
+                  {games.map(renderGame)}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Current month and future — always visible */}
+          {currentAndFutureMonths.map(([month,games],i)=>(
+            <div key={month} ref={i===0?currentMonthRef:null}>
+              {renderMonthHeader(month, games)}
+              {games.map(renderGame)}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddEventModal({onAdd, onClose}) {
+  const [form,setForm]=useState({title:"",team:"cubs",date:"",time:"7:05 PM",venue:"Wrigley Field",section:"Sec 111, Row 11, Seats 7 & 8",notes:""});
+  const set=(k,v)=>setForm(f=>({...f,[k]:v}));
+  const inp={width:"100%",background:"#13131f",border:"1px solid #252535",borderRadius:"8px",padding:"10px 12px",color:"#e0e0f0",fontFamily:"'DM Sans',sans-serif",fontSize:"14px",boxSizing:"border-box",outline:"none"};
+  const lbl={display:"block",fontSize:"10px",color:"#666",marginBottom:"4px",fontFamily:"'Courier Prime',monospace",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase"};
+  const handleTeamChange=(k)=>{
+    const t=TEAM_CONFIG[k];
+    set("team",k);
+    if(t.venue) set("venue",t.venue);
+    if(t.section) set("section",t.section);
+  };
+  return (
+    <div style={{position:"fixed",inset:0,background:"#000b",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={onClose}>
+      <div style={{background:"#0d0d18",border:"1px solid #1e1e32",borderRadius:"20px 20px 0 0",padding:"24px 20px 40px",width:"100%",maxWidth:"480px",maxHeight:"85vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px"}}>
+          <h2 style={{margin:0,color:"#f0f0f8",fontFamily:"'Bebas Neue',cursive",fontSize:"28px",letterSpacing:"0.05em"}}>Add Event</h2>
+          <button onClick={onClose} style={{background:"none",border:"none",color:"#666",fontSize:"26px",cursor:"pointer",padding:0}}>×</button>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:"14px"}}>
+          <div><label style={lbl}>Event Name</label><input style={inp} placeholder="Cubs vs Cardinals" value={form.title} onChange={e=>set("title",e.target.value)}/></div>
+          <div>
+            <label style={lbl}>Category</label>
+            <div style={{display:"flex",gap:"8px"}}>
+              {Object.entries(TEAM_CONFIG).map(([k,v])=>(
+                <button key={k} onClick={()=>handleTeamChange(k)} style={{flex:1,padding:"10px",borderRadius:"8px",border:form.team===k?`2px solid ${v.accent}`:"2px solid #252535",background:form.team===k?`${v.accent}18`:"#13131f",color:form.team===k?v.accent:"#888",fontFamily:"'DM Sans',sans-serif",fontSize:"13px",fontWeight:600,cursor:"pointer"}}>
+                  {v.emoji} {v.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={{display:"flex",gap:"10px"}}>
+            <div style={{flex:1}}><label style={lbl}>Date</label><input style={inp} type="date" value={form.date} onChange={e=>set("date",e.target.value)}/></div>
+            <div style={{flex:1}}><label style={lbl}>Time</label><input style={inp} placeholder="7:05 PM" value={form.time} onChange={e=>set("time",e.target.value)}/></div>
+          </div>
+          <div><label style={lbl}>Venue</label><input style={inp} value={form.venue} onChange={e=>set("venue",e.target.value)}/></div>
+          <div><label style={lbl}>Section / Seats</label><input style={inp} value={form.section} onChange={e=>set("section",e.target.value)}/></div>
+          <div><label style={lbl}>Notes</label><input style={inp} placeholder="Optional notes..." value={form.notes} onChange={e=>set("notes",e.target.value)}/></div>
+          <button onClick={()=>{if(!form.title||!form.date)return;onAdd({...form,tickets:2,phil_status:null,george_status:null,assignee:"Phil"});}} style={{width:"100%",padding:"14px",background:`linear-gradient(135deg,#CC3433,#0E3386)`,border:"none",borderRadius:"10px",color:"#fff",fontFamily:"'Bebas Neue',cursive",fontSize:"22px",letterSpacing:"0.08em",cursor:"pointer"}}>
+            Add Event
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EventDetailModal({event, onClose, onUpdate, onDelete}) {
+  const [aiLoading,setAiLoading]=useState(false);
+  const [aiMessage,setAiMessage]=useState(null);
+  const [editingNotes,setEditingNotes]=useState(false);
+  const [notesVal,setNotesVal]=useState(event.notes||"");
+  const status = getEventStatus(event);
+  const team = TEAM_CONFIG[event.team];
+
+  const handleToggle=(field,value)=>{
+    const current=event[field]??event[field==="philStatus"?"phil_status":"george_status"];
+    onUpdate(event.id,field,current===value?null:value);
+  };
+
+  const saveNotes=async()=>{
+    setEditingNotes(false);
+    onUpdate(event.id,"notes",notesVal);
+    await supabase.from("events").update({notes:notesVal}).eq("id",event.id);
+  };
+
+  const generateMessage=async(type)=>{
+    setAiLoading(true);setAiMessage(null);
+    try {
+      const sl={together:"both going together","phil-needs-plus":"Phil is going but George can't make it","george-needs-plus":"George is going but Phil can't make it",sell:"neither can go so tickets need to be sold or exchanged",undecided:"availability still undecided"};
+      const prompts={
+        text:`Short friendly text (2-4 sentences, casual) from Phil to George.\nEvent: ${event.title}\nDate: ${formatDate(event.date)} at ${event.time}\nStatus: ${sl[status]}\nKeep it natural like a real dad-son text.`,
+        email:`Short friendly email (subject + 3-5 sentences) from Phil to George.\nEvent: ${event.title}\nDate: ${formatDate(event.date)}\nStatus: ${sl[status]}\nFormat:\nSUBJECT: ...\nBODY: ...`,
+      };
+      const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompts[type]}]})});
+      const data=await res.json();
+      setAiMessage({type,text:data.content?.find(b=>b.type==="text")?.text||""});
+    } catch(e){setAiMessage({type:"error",text:"Couldn't generate. Try again."});}
+    setAiLoading(false);
+  };
+
+  const shareEvent=()=>{
+    const text=`${event.title}\n${formatDateLong(event.date)} at ${event.time}\n${event.venue||team.venue}`;
+    if(navigator.share){navigator.share({title:event.title,text});}
+    else{navigator.clipboard?.writeText(text);alert("Copied to clipboard!");}
+  };
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"#000c",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={onClose}>
+      <div style={{background:"#0d0d18",border:"1px solid #1e1e32",borderRadius:"20px 20px 0 0",padding:"24px 20px 40px",width:"100%",maxWidth:"480px",maxHeight:"92vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"16px"}}>
+          <div>
+            <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"4px"}}>
+              <span style={{fontSize:"26px"}}>{team.emoji}</span>
+              <h2 style={{margin:0,color:"#f0f0f8",fontFamily:"'Bebas Neue',cursive",fontSize:"24px",letterSpacing:"0.05em"}}>{event.title}</h2>
+            </div>
+            <div style={{fontSize:"14px",fontWeight:600,color:"#c0c0d8",fontFamily:"'DM Sans',sans-serif"}}>{formatDateLong(event.date)}</div>
+            <div style={{fontSize:"13px",color:"#a0a0b8",fontFamily:"'DM Sans',sans-serif"}}>{event.time} · {event.venue||team.venue}</div>
+            <div style={{fontSize:"12px",color:team.accent,fontFamily:"'Courier Prime',monospace",marginTop:"2px"}}>{team.section || event.section}</div>
+          </div>
+          <div style={{display:"flex",gap:"8px",alignItems:"center",flexShrink:0}}>
+            <button onClick={shareEvent} style={{background:"#13131f",border:"1px solid #252535",borderRadius:"8px",color:"#888",fontSize:"16px",cursor:"pointer",padding:"6px 10px"}}>↗</button>
+            <button onClick={onClose} style={{background:"none",border:"none",color:"#666",fontSize:"26px",cursor:"pointer",padding:0}}>×</button>
+          </div>
+        </div>
+
+        <div style={{marginBottom:"16px"}}><StatusPill status={status}/></div>
+
+        <div style={{marginBottom:"14px",background:"#13131f",borderRadius:"10px",padding:"14px"}}>
+          <div style={{fontSize:"10px",color:"#555",fontFamily:"'Courier Prime',monospace",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"12px"}}>Availability</div>
+          {[["Phil","philStatus","phil_status"],["George","georgeStatus","george_status"]].map(([name,field,dbField])=>(
+            <div key={field} style={{marginBottom:"10px"}}>
+              <div style={{fontSize:"12px",color:"#888",fontFamily:"'DM Sans',sans-serif",marginBottom:"6px",fontWeight:600}}>{name}</div>
+              <div style={{display:"flex",gap:"8px"}}>
+                {["in","maybe","out"].map(v=><AvailButton key={v} value={v} active={event[field]===v||event[dbField]===v} onClick={()=>handleToggle(field,v)} label={v==="in"?"In ✓":v==="maybe"?"Maybe":"Out ✗"}/>)}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{marginBottom:"14px",background:"#13131f",borderRadius:"10px",padding:"14px"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"8px"}}>
+            <div style={{fontSize:"10px",color:"#555",fontFamily:"'Courier Prime',monospace",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase"}}>Notes</div>
+            {!editingNotes
+              ? <button onClick={()=>setEditingNotes(true)} style={{background:"none",border:"1px solid #252535",borderRadius:"6px",color:"#777",fontSize:"11px",cursor:"pointer",padding:"3px 10px",fontFamily:"'DM Sans',sans-serif"}}>Edit</button>
+              : <button onClick={saveNotes} style={{background:"#22c55e18",border:"1px solid #22c55e44",borderRadius:"6px",color:"#22c55e",fontSize:"11px",cursor:"pointer",padding:"3px 10px",fontFamily:"'DM Sans',sans-serif",fontWeight:600}}>Save</button>
+            }
+          </div>
+          {editingNotes
+            ? <textarea value={notesVal} onChange={e=>setNotesVal(e.target.value)} style={{width:"100%",background:"#0a0a0f",border:"1px solid #252535",borderRadius:"6px",padding:"8px",color:"#ddd",fontFamily:"'DM Sans',sans-serif",fontSize:"13px",resize:"none",height:"64px",outline:"none"}}/>
+            : <div style={{fontSize:"13px",color:notesVal?"#aaa":"#444",fontFamily:"'DM Sans',sans-serif",fontStyle:notesVal?"italic":"normal",minHeight:"20px"}}>{notesVal||"No notes — tap Edit to add"}</div>
+          }
+        </div>
+
+        <div style={{background:"#13131f",borderRadius:"10px",padding:"14px",marginBottom:"14px"}}>
+          <div style={{fontSize:"10px",color:"#555",fontFamily:"'Courier Prime',monospace",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"10px"}}>✨ AI Draft Message</div>
+          <div style={{display:"flex",gap:"8px",marginBottom:"10px"}}>
+            <button onClick={()=>generateMessage("text")} disabled={aiLoading} style={{flex:1,padding:"10px",borderRadius:"8px",background:"#0e1a2e",border:"1px solid #2563eb44",color:"#7ab3f5",fontFamily:"'DM Sans',sans-serif",fontSize:"13px",fontWeight:600,cursor:"pointer",opacity:aiLoading?0.6:1}}>💬 Draft Text</button>
+            <button onClick={()=>generateMessage("email")} disabled={aiLoading} style={{flex:1,padding:"10px",borderRadius:"8px",background:"#120e24",border:"1px solid #7c3aed44",color:"#b39dfa",fontFamily:"'DM Sans',sans-serif",fontSize:"13px",fontWeight:600,cursor:"pointer",opacity:aiLoading?0.6:1}}>📧 Draft Email</button>
+          </div>
+          {aiLoading&&<div style={{textAlign:"center",color:"#555",fontFamily:"'DM Sans',sans-serif",fontSize:"13px",padding:"8px"}}>Writing message...</div>}
+          {aiMessage&&!aiLoading&&(
+            <div style={{background:"#0a0a0f",borderRadius:"8px",padding:"12px",fontSize:"13px",color:"#ccc",fontFamily:"'DM Sans',sans-serif",lineHeight:"1.6",whiteSpace:"pre-wrap"}}>
+              {aiMessage.text}
+              <button onClick={()=>navigator.clipboard?.writeText(aiMessage.text)} style={{display:"block",width:"100%",marginTop:"10px",padding:"8px",background:"#13131f",border:"1px solid #252535",borderRadius:"6px",color:"#777",fontFamily:"'DM Sans',sans-serif",fontSize:"12px",cursor:"pointer"}}>📋 Copy</button>
+            </div>
+          )}
+        </div>
+
+        <button onClick={()=>{onDelete(event.id);onClose();}} style={{width:"100%",padding:"12px",background:"none",border:"1px solid #ef444433",borderRadius:"8px",color:"#ef4444",fontFamily:"'DM Sans',sans-serif",fontSize:"14px",fontWeight:600,cursor:"pointer"}}>Remove Event</button>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [events,setEvents]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [dbError,setDbError]=useState(null);
+  const [filter,setFilter]=useState("all");
+  const [teamFilter,setTeamFilter]=useState("all");
+  const [showAdd,setShowAdd]=useState(false);
+  const [selectedEvent,setSelectedEvent]=useState(null);
+  const [showPast,setShowPast]=useState(false);
+  const [showOverview,setShowOverview]=useState(false);
+
+  useEffect(()=>{
+    (async()=>{
+      try {
+        const {data,error}=await supabase.from("events").select("*").order("date",{ascending:true});
+        if(error) throw error;
+        setEvents((data||[]).map(fromDb));
+      } catch(err){setDbError(err.message);}
+      setLoading(false);
+    })();
+  },[]);
+
+  const updateEvent=useCallback(async(id,field,value)=>{
+    if(field==="notes"){
+      setEvents(es=>es.map(e=>e.id===id?{...e,notes:value}:e));
+      setSelectedEvent(ev=>ev?.id===id?{...ev,notes:value}:ev);
+      return;
+    }
+    const dbField=field==="philStatus"?"phil_status":field==="georgeStatus"?"george_status":field;
+    setEvents(es=>es.map(e=>e.id===id?{...e,[field]:value,[dbField]:value}:e));
+    setSelectedEvent(ev=>ev?.id===id?{...ev,[field]:value,[dbField]:value}:ev);
+    await supabase.from("events").update({[dbField]:value}).eq("id",id);
+  },[]);
+
+  const addEvent=useCallback(async(ev)=>{
+    const toInsert={title:ev.title,team:ev.team,date:ev.date,time:ev.time,venue:ev.venue,section:ev.section||"",notes:ev.notes||"",phil_status:null,george_status:null,assignee:"Phil"};
+    const {data,error}=await supabase.from("events").insert([toInsert]).select();
+    if(!error&&data) setEvents(es=>[...es,...data.map(fromDb)]);
+    setShowAdd(false);
+  },[]);
+
+  const deleteEvent=useCallback(async(id)=>{
+    setEvents(es=>es.filter(e=>e.id!==id));
+    await supabase.from("events").delete().eq("id",id);
+  },[]);
+
+  const today=new Date(); today.setHours(0,0,0,0);
+  const upcoming=events.filter(e=>new Date(e.date+"T12:00:00")>=today);
+  const past=events.filter(e=>new Date(e.date+"T12:00:00")<today);
+
+  const filteredUpcoming=upcoming
+    .filter(e=>filter==="all"||getEventStatus(e)===filter)
+    .filter(e=>teamFilter==="all"||e.team===teamFilter)
+    .sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+  const filteredPast=past
+    .filter(e=>filter==="all"||getEventStatus(e)===filter)
+    .filter(e=>teamFilter==="all"||e.team===teamFilter)
+    .sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  const upcomingByMonth=groupByMonth(filteredUpcoming);
+  const pastByMonth=groupByMonth(filteredPast);
+
+  const togetherCount=upcoming.filter(e=>getEventStatus(e)==="together").length;
+  const undecidedCount=upcoming.filter(e=>getEventStatus(e)==="undecided").length;
+  const sellCount=upcoming.filter(e=>getEventStatus(e)==="sell").length;
+
+  const chip=(active,color)=>({padding:"6px 14px",borderRadius:"4px",border:active?`1px solid ${color}`:"1px solid #252535",background:active?`${color}18`:"transparent",color:active?color:"#888",fontSize:"12px",fontWeight:600,fontFamily:"'DM Sans',sans-serif",cursor:"pointer",whiteSpace:"nowrap"});
+
+  if(loading) return (
+    <div style={{minHeight:"100vh",background:"#0a0a0f",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"16px"}}>
+      <div style={{fontSize:"48px"}}>🎟</div>
+      <div style={{color:"#888",fontFamily:"'Bebas Neue',cursive",fontSize:"24px",letterSpacing:"0.1em"}}>Loading Tickets...</div>
+    </div>
+  );
+
+  if(dbError) return (
+    <div style={{minHeight:"100vh",background:"#0a0a0f",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"12px",padding:"24px"}}>
+      <div style={{fontSize:"40px"}}>⚠️</div>
+      <div style={{color:"#ef4444",fontFamily:"'Bebas Neue',cursive",fontSize:"24px"}}>Database Error</div>
+      <div style={{color:"#555",fontFamily:"'DM Sans',sans-serif",fontSize:"13px",textAlign:"center",maxWidth:"320px"}}>{dbError}</div>
+    </div>
+  );
+
+  // Bottom nav tabs
+  const navTabs = [
+    {key:"all",   label:"All",   emoji:"🎟"},
+    {key:"cubs",  label:"Cubs",  emoji:"⚾"},
+    {key:"bears", label:"Bears", emoji:"🏈"},
+    {key:"other", label:"Other", emoji:"🎵"},
+  ];
+
+  return (
+    <div style={{minHeight:"100vh",background:"#0a0a0f",maxWidth:"480px",margin:"0 auto",position:"relative"}}>
+
+      {/* Header + status filters — all sticky together */}
+      <div style={{background:"#0a0a0f",position:"sticky",top:0,zIndex:10,backdropFilter:"blur(12px)",borderBottom:"1px solid #1a1a2e"}}>
+        <div style={{padding:"16px 16px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <h1 style={{margin:0,fontFamily:"'Bebas Neue',cursive",fontSize:"28px",color:"#f0f0f8",letterSpacing:"0.05em",lineHeight:1}}>Phil & George Tickets</h1>
+          <div style={{display:"flex",gap:"8px",alignItems:"center"}}>
+            <button onClick={()=>setShowOverview(true)} style={{width:"36px",height:"36px",borderRadius:"8px",background:"#13131f",border:"1px solid #252535",color:"#888",fontSize:"16px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>📅</button>
+            <button onClick={()=>setShowAdd(true)} style={{width:"36px",height:"36px",borderRadius:"8px",background:"linear-gradient(135deg,#CC3433,#0E3386)",border:"none",color:"#fff",fontSize:"20px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 14px #CC343344"}}>+</button>
+          </div>
+        </div>
+        {/* Status filter bar — permanent, no scroll */}
+        <div style={{display:"flex",borderTop:"1px solid #1a1a2e"}}>
+          {[["all","All","#aaa"],["together","Together","#22c55e"],["undecided","Undecided","#aaa"],["sell","Sell","#ef4444"]].map(([key,label,color])=>(
+            <button key={key} onClick={()=>setFilter(key)} style={{flex:1,padding:"10px 4px",background:"none",border:"none",borderBottom:filter===key?`2px solid ${color}`:"2px solid transparent",color:filter===key?color:"#555",fontFamily:"'DM Sans',sans-serif",fontSize:"12px",fontWeight:filter===key?700:500,cursor:"pointer",transition:"all 0.15s",whiteSpace:"nowrap"}}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Scrollable content */}
+      <div style={{padding:"4px 12px 160px"}}>
+        {/* Upcoming */}
+        {filteredUpcoming.length===0?(
+          <div style={{textAlign:"center",padding:"48px 20px",fontFamily:"'DM Sans',sans-serif"}}>
+            <div style={{fontSize:"36px",marginBottom:"10px"}}>🎟</div>
+            <div style={{fontSize:"15px",fontWeight:600,color:"#555"}}>No upcoming events</div>
+          </div>
+        ):Object.entries(upcomingByMonth).map(([month,evs])=>(
+          <div key={month}>
+            <MonthHeader month={month}/>
+            {evs.map(ev=><EventCard key={ev.id} event={ev} onUpdate={updateEvent} onClick={setSelectedEvent}/>)}
+          </div>
+        ))}
+
+        {/* Past toggle */}
+        <div style={{borderTop:"1px solid #1a1a2e",marginTop:"8px"}}>
+          <button
+            onClick={()=>setShowPast(p=>!p)}
+            style={{width:"100%",padding:"14px",background:"none",border:"none",color:"#444",fontFamily:"'Courier Prime',monospace",fontSize:"11px",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:"8px"}}
+          >
+            <span style={{flex:1,height:"1px",background:"#1e1e32"}}/>
+            <span>{showPast?"▲":"▼"} Past Events ({past.length})</span>
+            <span style={{flex:1,height:"1px",background:"#1e1e32"}}/>
+          </button>
+          {showPast&&(
+            filteredPast.length===0
+              ? <div style={{textAlign:"center",padding:"24px",color:"#444",fontFamily:"'DM Sans',sans-serif",fontSize:"13px"}}>No past events</div>
+              : Object.entries(pastByMonth).map(([month,evs])=>(
+                <div key={month}>
+                  <MonthHeader month={month}/>
+                  {evs.map(ev=><EventCard key={ev.id} event={ev} onUpdate={updateEvent} onClick={setSelectedEvent}/>)}
+                </div>
+              ))
+          )}
+        </div>
+      </div>
+
+      {/* Bottom nav bar */}
+      <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:"480px",background:"#0d0d18",borderTop:"1px solid #1e1e32",display:"flex",zIndex:20,paddingBottom:"env(safe-area-inset-bottom)"}}>
+        {navTabs.map(tab=>{
+          const isActive = teamFilter===tab.key;
+          const accentColor = tab.key==="cubs"?"#CC3433":tab.key==="bears"?"#F26522":tab.key==="other"?"#a78bfa":"#888";
+          return (
+            <button
+              key={tab.key}
+              onClick={()=>setTeamFilter(tab.key)}
+              style={{flex:1,padding:"10px 4px 12px",background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:"3px",borderTop:isActive?`2px solid ${accentColor}`:"2px solid transparent",transition:"all 0.15s"}}
+            >
+              <span style={{fontSize:"22px",lineHeight:1}}>{tab.emoji}</span>
+              <span style={{fontSize:"10px",fontWeight:isActive?700:500,color:isActive?accentColor:"#444",fontFamily:"'DM Sans',sans-serif",letterSpacing:"0.03em"}}>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {showOverview&&<SeasonOverview onClose={()=>setShowOverview(false)}/>}
+      {showAdd&&<AddEventModal onAdd={addEvent} onClose={()=>setShowAdd(false)}/>}
+      {selectedEvent&&<EventDetailModal event={selectedEvent} onClose={()=>setSelectedEvent(null)} onUpdate={updateEvent} onDelete={deleteEvent}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
