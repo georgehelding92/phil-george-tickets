@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from './lib/supabase';
-import { fromDb, getEventStatus, groupByMonth, SETTLED_DISPOSITIONS } from './lib/eventHelpers';
+import { fromDb, groupByMonth, SETTLED_DISPOSITIONS } from './lib/eventHelpers';
 import { useAuth } from './lib/authContext';
 import { LoginScreen } from './components/LoginScreen';
 import { EventCard } from './components/EventCard';
@@ -10,7 +10,7 @@ import { AddEventModal } from './components/AddEventModal';
 import { EventDetailModal } from './components/EventDetailModal';
 
 function App() {
-  const {loading: authLoading, session, currentUser, signOut} = useAuth();
+  const {loading: authLoading, session, currentUser, isReadOnly, signOut} = useAuth();
   const [events,setEvents]=useState([]);
   const [loading,setLoading]=useState(true);
   const [dbError,setDbError]=useState(null);
@@ -62,9 +62,12 @@ function App() {
   const past=events.filter(e=>new Date(e.date+"T12:00:00")<today);
 
   const matchesFilter=(e)=>{
+    const isSettled = SETTLED_DISPOSITIONS.includes(e.disposition);
     if(filter==="all") return true;
-    if(filter==="settled") return SETTLED_DISPOSITIONS.includes(e.disposition);
-    return getEventStatus(e)===filter;
+    if(filter==="settled") return isSettled;
+    if(filter==="together") return !isSettled && e.phil_status==="in" && e.george_status==="in";
+    if(filter==="undecided") return !isSettled && (e.phil_status==null||e.phil_status==="maybe"||e.george_status==null||e.george_status==="maybe");
+    return false;
   };
 
   const filteredUpcoming=upcoming
@@ -120,7 +123,7 @@ function App() {
           <h1 style={{margin:0,fontFamily:"'Bebas Neue',cursive",fontSize:"28px",color:"#f0f0f8",letterSpacing:"0.05em",lineHeight:1}}>Phil & George Tickets</h1>
           <div style={{display:"flex",gap:"8px",alignItems:"center"}}>
             <button onClick={()=>setShowOverview(true)} style={{width:"36px",height:"36px",borderRadius:"8px",background:"#13131f",border:"1px solid #252535",color:"#888",fontSize:"16px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>📅</button>
-            <button onClick={()=>setShowAdd(true)} style={{width:"36px",height:"36px",borderRadius:"8px",background:"linear-gradient(135deg,#CC3433,#0E3386)",border:"none",color:"#fff",fontSize:"20px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 14px #CC343344"}}>+</button>
+            {!isReadOnly && <button onClick={()=>setShowAdd(true)} style={{width:"36px",height:"36px",borderRadius:"8px",background:"linear-gradient(135deg,#CC3433,#0E3386)",border:"none",color:"#fff",fontSize:"20px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 14px #CC343344"}}>+</button>}
           </div>
         </div>
         <div style={{padding:"0 16px 10px",fontSize:"11px",color:"#444",fontFamily:"'DM Sans',sans-serif"}}>

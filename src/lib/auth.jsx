@@ -18,10 +18,13 @@ export function AuthProvider({children}) {
     return () => listener.subscription.unsubscribe();
   }, []);
 
+  const currentUser = userFromEmail(session?.user?.email);
+
   const value = {
     loading,
     session,
-    currentUser: userFromEmail(session?.user?.email),
+    currentUser,
+    isReadOnly: currentUser === "Kate",
     signOut: () => supabase.auth.signOut(),
   };
 

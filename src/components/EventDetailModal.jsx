@@ -11,7 +11,7 @@ function settledLabel(disposition, salePrice) {
 }
 
 export function EventDetailModal({event, onClose, onUpdate, onDelete}) {
-  const {currentUser} = useAuth();
+  const {currentUser, isReadOnly} = useAuth();
   const [aiLoading,setAiLoading]=useState(false);
   const [aiMessage,setAiMessage]=useState(null);
   const [salePriceVal,setSalePriceVal]=useState(event.sale_price||"");
@@ -86,7 +86,7 @@ export function EventDetailModal({event, onClose, onUpdate, onDelete}) {
             <div style={{fontSize:"13px",color:"#a0a0b8",fontFamily:"'DM Sans',sans-serif"}}>{event.time} · {event.venue||team.venue}</div>
             <div style={{fontSize:"12px",color:team.accent,fontFamily:"'Courier Prime',monospace",marginTop:"2px"}}>{team.section || event.section}</div>
 
-            <div style={{marginTop:"10px"}}>
+            {!isReadOnly && <div style={{marginTop:"10px"}}>
               {isSettled ? (
                 <div>
                   {disposition==="Sold" && (
@@ -111,7 +111,7 @@ export function EventDetailModal({event, onClose, onUpdate, onDelete}) {
                   )}
                 </div>
               )}
-            </div>
+            </div>}
           </div>
           <button onClick={onClose} style={{background:"none",border:"none",color:"#666",fontSize:"26px",cursor:"pointer",padding:0,flexShrink:0}}>×</button>
         </div>
@@ -129,7 +129,7 @@ export function EventDetailModal({event, onClose, onUpdate, onDelete}) {
             <div key={field} style={{marginBottom:"10px"}}>
               <div style={{fontSize:"12px",color:"#888",fontFamily:"'DM Sans',sans-serif",marginBottom:"6px",fontWeight:600}}>{name}</div>
               <div style={{display:"flex",gap:"8px"}}>
-                {["in","maybe","out"].map(v=><AvailButton key={v} value={v} active={event[field]===v||event[dbField]===v} onClick={()=>handleToggle(field,v)} label={v==="in"?"In ✓":v==="maybe"?"Maybe":"Out ✗"} disabled={isSettled||currentUser!==name}/>)}
+                {["in","maybe","out"].map(v=><AvailButton key={v} value={v} active={event[field]===v||event[dbField]===v} onClick={()=>handleToggle(field,v)} label={v==="in"?"In ✓":v==="maybe"?"Maybe":"Out ✗"} disabled={isReadOnly||isSettled||currentUser!==name}/>)}
               </div>
             </div>
           ))}
@@ -142,7 +142,7 @@ export function EventDetailModal({event, onClose, onUpdate, onDelete}) {
           </div>
         )}
 
-        <div style={{background:"#13131f",borderRadius:"8px",padding:"10px",marginBottom:"14px"}}>
+        {!isReadOnly && <div style={{background:"#13131f",borderRadius:"8px",padding:"10px",marginBottom:"14px"}}>
           <button onClick={generateMessage} disabled={aiLoading} style={{width:"100%",padding:"8px",borderRadius:"6px",background:"#0e1a2e",border:"1px solid #2563eb44",color:"#7ab3f5",fontFamily:"'DM Sans',sans-serif",fontSize:"12px",fontWeight:600,cursor:"pointer",opacity:aiLoading?0.6:1}}>💬 Draft Text</button>
           {aiLoading&&<div style={{textAlign:"center",color:"#555",fontFamily:"'DM Sans',sans-serif",fontSize:"12px",padding:"6px"}}>Writing message...</div>}
           {aiMessage&&!aiLoading&&(
@@ -156,9 +156,9 @@ export function EventDetailModal({event, onClose, onUpdate, onDelete}) {
               )}
             </div>
           )}
-        </div>
+        </div>}
 
-        <button onClick={()=>{onDelete(event.id);onClose();}} style={{width:"100%",padding:"12px",background:"none",border:"1px solid #ef444433",borderRadius:"8px",color:"#ef4444",fontFamily:"'DM Sans',sans-serif",fontSize:"14px",fontWeight:600,cursor:"pointer"}}>Remove Event</button>
+        {!isReadOnly && <button onClick={()=>{onDelete(event.id);onClose();}} style={{width:"100%",padding:"12px",background:"none",border:"1px solid #ef444433",borderRadius:"8px",color:"#ef4444",fontFamily:"'DM Sans',sans-serif",fontSize:"14px",fontWeight:600,cursor:"pointer"}}>Remove Event</button>}
       </div>
     </div>
   );

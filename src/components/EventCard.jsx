@@ -5,7 +5,7 @@ import { TEAM_CONFIG, getEventStatus, daysUntil, formatDate } from '../lib/event
 import { useAuth } from '../lib/authContext';
 
 export function EventCard({event, onUpdate, onClick}) {
-  const {currentUser} = useAuth();
+  const {currentUser, isReadOnly} = useAuth();
   const status = getEventStatus(event);
   const team = TEAM_CONFIG[event.team];
   const days = daysUntil(event.date);
@@ -78,7 +78,7 @@ export function EventCard({event, onUpdate, onClick}) {
                       active={event[field]===v||event[dbField]===v}
                       onClick={(e)=>handleToggle(e,field,v)}
                       label={v==="in"?"In":v==="maybe"?"?":"Out"}
-                      disabled={currentUser!==owner}
+                      disabled={isReadOnly||currentUser!==owner}
                     />
                   ))}
                 </div>
