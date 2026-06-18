@@ -2,7 +2,10 @@ export function fromDb(row) {
   return { ...row, philStatus: row.phil_status, georgeStatus: row.george_status };
 }
 
+export const SETTLED_DISPOSITIONS = ["Sold", "Exchanged", "Gave Away"];
+
 export function getEventStatus(ev) {
+  if (SETTLED_DISPOSITIONS.includes(ev.disposition)) return ev.disposition;
   const p = ev.philStatus ?? ev.phil_status;
   const g = ev.georgeStatus ?? ev.george_status;
   if (p==="in" && g==="in")   return "together";
@@ -18,9 +21,10 @@ export const STATUS_CONFIG = {
   "george-needs-plus": { label:"George + Guest", color:"#f59e0b", bg:"#2d1a00" },
   sell:                { label:"Needs Settling",  color:"#ef4444", bg:"#2d0a0a" },
   undecided:           { label:"Needs Decision",  color:"#888",    bg:"#1a1a2e" },
+  Sold:                { label:"Sold",            color:"#ef4444", bg:"#2d0a0a" },
+  Exchanged:           { label:"Exchanged",       color:"#f59e0b", bg:"#2d1a00" },
+  "Gave Away":         { label:"Gave Away",       color:"#888",    bg:"#1a1a2e" },
 };
-
-export const SETTLED_DISPOSITIONS = ["Sold", "Exchanged", "Gave Away"];
 
 export const TEAM_CONFIG = {
   cubs:  { emoji:"⚾", accent:"#CC3433", secondAccent:"#0E3386", label:"Cubs",  venue:"Wrigley Field",  section:"Sec 111, Row 11, Seats 7 & 8" },
