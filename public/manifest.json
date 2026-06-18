@@ -1,0 +1,19 @@
+{
+  "name": "Helding Tickets",
+  "short_name": "Helding",
+  "background_color": "#0f0f1e",
+  "theme_color": "#CC3433",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

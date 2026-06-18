@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="100" fill="#0f0f1e"/>
+
+  <rect x="66" y="176" width="380" height="160" rx="18" fill="#CC3433"/>
+  <circle cx="66" cy="256" r="22" fill="#0f0f1e"/>
+  <circle cx="446" cy="256" r="22" fill="#0f0f1e"/>
+  <line x1="256" y1="196" x2="256" y2="316" stroke="#0f0f1e" stroke-width="4" stroke-dasharray="10 10"/>
+
+  <text x="256" y="240" text-anchor="middle" font-family="'Bebas Neue','Arial Narrow',sans-serif" font-weight="700" font-size="52" letter-spacing="3" fill="#ffffff">HELDING</text>
+  <text x="256" y="300" text-anchor="middle" font-family="'Bebas Neue','Arial Narrow',sans-serif" font-weight="700" font-size="52" letter-spacing="6" fill="#ffffff">TICKETS</text>
+</svg>

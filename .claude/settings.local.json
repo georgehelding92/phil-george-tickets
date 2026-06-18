@@ -15,7 +15,10 @@
       "Read(//tmp/**)",
       "Bash(deno --version)",
       "Bash(xargs -I{} sh -c 'echo ==={}===; cat {}')",
-      "Bash(supabase *)"
+      "Bash(supabase *)",
+      "Bash(npx --yes sharp-cli --version)",
+      "Bash(npx --yes sharp-cli -i public/icon.svg -o public/icon-512.png resize 512 512)",
+      "Bash(npx --yes sharp-cli -i public/icon.svg -o public/icon-192.png resize 192 192)"
     ]
   }
 }
