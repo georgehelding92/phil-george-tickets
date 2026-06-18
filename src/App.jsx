@@ -158,7 +158,7 @@ function App() {
             style={{width:"100%",padding:"14px",background:"none",border:"none",color:"#444",fontFamily:"'Courier Prime',monospace",fontSize:"11px",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:"8px"}}
           >
             <span style={{flex:1,height:"1px",background:"#1e1e32"}}/>
-            <span>{showPast?"▲":"▼"} Past Events ({past.length})</span>
+            <span>{showPast?"▲":"▼"} Past Events ({filteredPast.length})</span>
             <span style={{flex:1,height:"1px",background:"#1e1e32"}}/>
           </button>
           {showPast&&(

@@ -96,7 +96,7 @@ export function EventDetailModal({event, onClose, onUpdate, onDelete}) {
                 </div>
               ) : (
                 <div>
-                  <button onClick={()=>setSettleOpen(true)} style={{padding:"6px 12px",borderRadius:"8px",background:"#13131f",border:"1px solid #252535",color:"#888",fontFamily:"'DM Sans',sans-serif",fontSize:"11px",fontWeight:600,cursor:"pointer"}}>Mark as Settled</button>
+                  <button onClick={()=>setSettleOpen(true)} style={{padding:"6px 12px",borderRadius:"8px",background:showSettlePicker?"#ef4444":"#13131f",border:"1px solid #ef4444",color:showSettlePicker?"#fff":"#ef4444",fontFamily:"'DM Sans',sans-serif",fontSize:"11px",fontWeight:600,cursor:"pointer"}}>Mark as Settled</button>
                   {showSettlePicker && (
                     <div style={{marginTop:"8px",background:"#13131f",borderRadius:"8px",padding:"10px",maxWidth:"260px"}}>
                       <div style={{display:"flex",gap:"6px"}}>

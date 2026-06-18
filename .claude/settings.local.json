@@ -13,7 +13,9 @@
       "Bash(supabase functions *)",
       "Bash(curl -s \"https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/3/schedule?season=2026\" -o /tmp/espn.json -w \"%{http_code}\\\\n\")",
       "Read(//tmp/**)",
-      "Bash(deno --version)"
+      "Bash(deno --version)",
+      "Bash(xargs -I{} sh -c 'echo ==={}===; cat {}')",
+      "Bash(supabase *)"
     ]
   }
 }
