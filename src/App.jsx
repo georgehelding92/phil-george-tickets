@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from './lib/supabase';
-import { fromDb, getEventStatus, groupByMonth } from './lib/eventHelpers';
+import { fromDb, getEventStatus, groupByMonth, SETTLED_DISPOSITIONS } from './lib/eventHelpers';
+import { useAuth } from './lib/authContext';
+import { LoginScreen } from './components/LoginScreen';
 import { EventCard } from './components/EventCard';
 import { MonthHeader } from './components/MonthHeader';
 import { SeasonOverview } from './components/SeasonOverview';
@@ -8,6 +10,7 @@ import { AddEventModal } from './components/AddEventModal';
 import { EventDetailModal } from './components/EventDetailModal';
 
 function App() {
+  const {loading: authLoading, session, currentUser, signOut} = useAuth();
   const [events,setEvents]=useState([]);
   const [loading,setLoading]=useState(true);
   const [dbError,setDbError]=useState(null);
@@ -19,6 +22,7 @@ function App() {
   const [showOverview,setShowOverview]=useState(false);
 
   useEffect(()=>{
+    if(!session) return;
     (async()=>{
       try {
         const {data,error}=await supabase.from("events").select("*").order("date",{ascending:true});
@@ -27,7 +31,7 @@ function App() {
       } catch(err){setDbError(err.message);}
       setLoading(false);
     })();
-  },[]);
+  },[session]);
 
   const updateEvent=useCallback(async(id,field,value)=>{
     if(field==="notes"){
@@ -57,18 +61,32 @@ function App() {
   const upcoming=events.filter(e=>new Date(e.date+"T12:00:00")>=today);
   const past=events.filter(e=>new Date(e.date+"T12:00:00")<today);
 
+  const matchesFilter=(e)=>{
+    if(filter==="all") return true;
+    if(filter==="settled") return SETTLED_DISPOSITIONS.includes(e.disposition);
+    return getEventStatus(e)===filter;
+  };
+
   const filteredUpcoming=upcoming
-    .filter(e=>filter==="all"||getEventStatus(e)===filter)
+    .filter(matchesFilter)
     .filter(e=>teamFilter==="all"||e.team===teamFilter)
     .sort((a,b)=>new Date(a.date)-new Date(b.date));
 
   const filteredPast=past
-    .filter(e=>filter==="all"||getEventStatus(e)===filter)
+    .filter(matchesFilter)
     .filter(e=>teamFilter==="all"||e.team===teamFilter)
     .sort((a,b)=>new Date(b.date)-new Date(a.date));
 
   const upcomingByMonth=groupByMonth(filteredUpcoming);
   const pastByMonth=groupByMonth(filteredPast);
+
+  if(authLoading) return (
+    <div style={{minHeight:"100vh",background:"#0a0a0f",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"16px"}}>
+      <div style={{fontSize:"48px"}}>🎟</div>
+    </div>
+  );
+
+  if(!session) return <LoginScreen/>;
 
   if(loading) return (
     <div style={{minHeight:"100vh",background:"#0a0a0f",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"16px"}}>
@@ -98,16 +116,19 @@ function App() {
 
       {/* Header + status filters — all sticky together */}
       <div style={{background:"#0a0a0f",position:"sticky",top:0,zIndex:10,backdropFilter:"blur(12px)",borderBottom:"1px solid #1a1a2e"}}>
-        <div style={{padding:"16px 16px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{padding:"16px 16px 4px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <h1 style={{margin:0,fontFamily:"'Bebas Neue',cursive",fontSize:"28px",color:"#f0f0f8",letterSpacing:"0.05em",lineHeight:1}}>Phil & George Tickets</h1>
           <div style={{display:"flex",gap:"8px",alignItems:"center"}}>
             <button onClick={()=>setShowOverview(true)} style={{width:"36px",height:"36px",borderRadius:"8px",background:"#13131f",border:"1px solid #252535",color:"#888",fontSize:"16px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>📅</button>
             <button onClick={()=>setShowAdd(true)} style={{width:"36px",height:"36px",borderRadius:"8px",background:"linear-gradient(135deg,#CC3433,#0E3386)",border:"none",color:"#fff",fontSize:"20px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 4px 14px #CC343344"}}>+</button>
           </div>
         </div>
+        <div style={{padding:"0 16px 10px",fontSize:"11px",color:"#444",fontFamily:"'DM Sans',sans-serif"}}>
+          Signed in as {currentUser||"Unknown"} · <button onClick={signOut} style={{background:"none",border:"none",padding:0,color:"#555",fontSize:"11px",fontFamily:"'DM Sans',sans-serif",textDecoration:"underline",cursor:"pointer"}}>Sign out</button>
+        </div>
         {/* Status filter bar — permanent, no scroll */}
         <div style={{display:"flex",borderTop:"1px solid #1a1a2e"}}>
-          {[["all","All","#aaa"],["together","Together","#22c55e"],["undecided","Undecided","#aaa"],["sell","Sell","#ef4444"]].map(([key,label,color])=>(
+          {[["all","All","#aaa"],["together","Together","#22c55e"],["undecided","Undecided","#aaa"],["settled","Settled","#ef4444"]].map(([key,label,color])=>(
             <button key={key} onClick={()=>setFilter(key)} style={{flex:1,padding:"10px 4px",background:"none",border:"none",borderBottom:filter===key?`2px solid ${color}`:"2px solid transparent",color:filter===key?color:"#555",fontFamily:"'DM Sans',sans-serif",fontSize:"12px",fontWeight:filter===key?700:500,cursor:"pointer",transition:"all 0.15s",whiteSpace:"nowrap"}}>
               {label}
             </button>

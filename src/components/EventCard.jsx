@@ -2,8 +2,10 @@ import { Fragment } from 'react';
 import { StatusPill } from './StatusPill';
 import { AvailButton } from './AvailButton';
 import { TEAM_CONFIG, getEventStatus, daysUntil, formatDate } from '../lib/eventHelpers';
+import { useAuth } from '../lib/authContext';
 
 export function EventCard({event, onUpdate, onClick}) {
+  const {currentUser} = useAuth();
   const status = getEventStatus(event);
   const team = TEAM_CONFIG[event.team];
   const days = daysUntil(event.date);
@@ -65,7 +67,7 @@ export function EventCard({event, onUpdate, onClick}) {
 
         {/* Availability — clearer Phil/George separation */}
         <div style={{display:"flex",gap:"0",alignItems:"stretch",background:"#0d0d18",borderRadius:"8px",overflow:"hidden",border:"1px solid #252535"}} onClick={e=>e.stopPropagation()}>
-          {[["PHIL","philStatus","phil_status"],["GEORGE","georgeStatus","george_status"]].map(([label,field,dbField],i)=>(
+          {[["PHIL","philStatus","phil_status","Phil"],["GEORGE","georgeStatus","george_status","George"]].map(([label,field,dbField,owner],i)=>(
             <Fragment key={field}>
               {i>0&&<div style={{width:"1px",background:"#252535",flexShrink:0}}/>}
               <div style={{flex:1,padding:"8px 6px 8px"}}>
@@ -76,6 +78,7 @@ export function EventCard({event, onUpdate, onClick}) {
                       active={event[field]===v||event[dbField]===v}
                       onClick={(e)=>handleToggle(e,field,v)}
                       label={v==="in"?"In":v==="maybe"?"?":"Out"}
+                      disabled={currentUser!==owner}
                     />
                   ))}
                 </div>

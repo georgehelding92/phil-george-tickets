@@ -13,12 +13,14 @@ export function getEventStatus(ev) {
 }
 
 export const STATUS_CONFIG = {
-  together:            { label:"Going Together 🎉", color:"#22c55e", bg:"#052e16" },
-  "phil-needs-plus":   { label:"Phil Needs +1",     color:"#f59e0b", bg:"#2d1a00" },
-  "george-needs-plus": { label:"George Needs +1",   color:"#f59e0b", bg:"#2d1a00" },
-  sell:                { label:"Sell / Exchange",   color:"#ef4444", bg:"#2d0a0a" },
-  undecided:           { label:"Needs Decision",    color:"#888",    bg:"#1a1a2e" },
+  together:            { label:"Going Together", color:"#22c55e", bg:"#052e16" },
+  "phil-needs-plus":   { label:"Phil + Guest",   color:"#f59e0b", bg:"#2d1a00" },
+  "george-needs-plus": { label:"George + Guest", color:"#f59e0b", bg:"#2d1a00" },
+  sell:                { label:"Needs Settling",  color:"#ef4444", bg:"#2d0a0a" },
+  undecided:           { label:"Needs Decision",  color:"#888",    bg:"#1a1a2e" },
 };
+
+export const SETTLED_DISPOSITIONS = ["Sold", "Exchanged", "Gave Away"];
 
 export const TEAM_CONFIG = {
   cubs:  { emoji:"⚾", accent:"#CC3433", secondAccent:"#0E3386", label:"Cubs",  venue:"Wrigley Field",  section:"Sec 111, Row 11, Seats 7 & 8" },

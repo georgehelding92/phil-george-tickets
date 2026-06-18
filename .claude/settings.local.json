@@ -6,7 +6,14 @@
       "Bash(pkill -f \"vite$\")",
       "Bash(pkill -f \"node.*vite\")",
       "Bash(node *)",
-      "Bash(netlify --version)"
+      "Bash(netlify --version)",
+      "Bash(curl -s http://localhost:5174/)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(supabase link *)",
+      "Bash(supabase functions *)",
+      "Bash(curl -s \"https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/3/schedule?season=2026\" -o /tmp/espn.json -w \"%{http_code}\\\\n\")",
+      "Read(//tmp/**)",
+      "Bash(deno --version)"
     ]
   }
 }
